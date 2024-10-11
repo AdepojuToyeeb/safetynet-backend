@@ -1,0 +1,12 @@
+version: "3.0"
+
+services:
+  safetynet-db:
+    container_name: safetynet-db
+    image: postgres:14.7 # match with the latest PostgreSQL version supported by AWS Aurora
+    ports:
+      - "5432:5432" # specify port forwarding
+    environment:
+      - POSTGRES_PASSWORD=safetynet-123
+      - POSTGRES_USER=safetynet
+      - POSTGRES_DB=safetynet
