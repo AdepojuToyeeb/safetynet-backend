@@ -11,13 +11,15 @@ constructor(
     @InjectRepository(Users)
      private usersRepository: Repository<Users>,
 ){}
- async createUser(CreateUserDTO: CreateUserDTO): Promise<Users>{
+ async createUser(CreateUserDTO: CreateUserDTO){
     const {email,password} = CreateUserDTO;
 
-    const hashedPassword = await bcrypt.hash(password);
-    const newUser = this.usersRepository.create({email, password: hashedPassword});
+    const newUser = this.usersRepository.create({email, password});
+    await this.usersRepository.save(newUser);
 
-    return this.usersRepository.save(newUser);
+    return {
+      message:"User created successfully"
+    }
 
  }
  async findbyEmail(email: string): Promise<Users | undefined> {

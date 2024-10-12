@@ -50,6 +50,8 @@ $ yarn migration:create src/migrations/<migration_name>
 
 # generate migration - create a migration that reflect changes made in the entities
 $ yarn migration:generate src/migrations/<migration_name>
+or
+$ npm run migration:generate src/migrations/<migration_name>
 
 # run migration - execute all pending migrations
 $ yarn migration:run
