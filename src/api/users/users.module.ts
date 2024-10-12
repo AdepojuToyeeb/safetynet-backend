@@ -10,3 +10,4 @@ import { Users } from 'src/models/users.entity';
   providers: [UsersService]
 })
 export class UsersModule {}
+
