@@ -1,29 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository} from '@nestjs/typeorm';
+import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Users } from '../../models/users.entity';
-import { CreateUserDTO } from '../../dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
+import { Users } from 'src/models/users.entity';
+import { RequestPhoneDto } from 'src/dto/request-phone.dto';
+import { ValidateOtpDto } from 'src/dto/validate-otp-dto';
+import { CreateUserDTO } from 'src/dto/create-user.dto';
 
 @Injectable()
-export class UsersService {
-constructor(
+export class UserService {
+  private readonly hardcodedOtp = '123456'; // OTP for validation
+  private tempPhoneNumber: string | null = null; // Temporary storage for the phone number
+
+  constructor(
     @InjectRepository(Users)
-     private usersRepository: Repository<Users>,
-){}
- async createUser(CreateUserDTO: CreateUserDTO){
-    const {email,password} = CreateUserDTO;
+    private userRepository: Repository<Users>,
+  ) {}
 
-    const newUser = this.usersRepository.create({email, password});
-    await this.usersRepository.save(newUser);
+  // Store the phone number temporarily
+  requestPhoneNumber(dto: RequestPhoneDto): string {
+    this.tempPhoneNumber = dto.phoneNumber;
+    return `Phone number ${this.tempPhoneNumber} received. Please validate with OTP.`;
+  }
+  
+  // Validate the OTP using the stored phone number
+  async validateOtp(dto: ValidateOtpDto): Promise<{message: string}> {
+    if (dto.otp !== this.hardcodedOtp || !this.tempPhoneNumber) {
+      throw new BadRequestException('Invalid OTP or phone number not provided');
+    }
+    return {message:'OTP verification successful'};
+  }
 
-    return {
-      message:"User created successfully"
+  // Automatically use the stored phone number during registration
+  async registerUser(dto: CreateUserDTO): Promise<Users> {
+    if (!this.tempPhoneNumber) {
+      throw new BadRequestException('Phone number is missing. Please request and validate the phone number first.');
     }
 
- }
- async findbyEmail(email: string): Promise<Users | undefined> {
-    return this.usersRepository.findOneBy({email});
- }
+    //Check if user exists with phone number
+    const existingUser = await this.userRepository.findOne({ where: {phoneNumber: this.tempPhoneNumber},
+    });
+    if (existingUser){
+      throw new ConflictException('Phone number already exists');
+    }
 
+    const { firstName, lastName, email, password } = dto;
+    const phoneNumber = this.tempPhoneNumber; // Use the stored phone number
+
+
+    const user = this.userRepository.create({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password
+    });
+
+    this.tempPhoneNumber = null; // Clear the temporary phone number after registration
+    return this.userRepository.save(user);
+  }
 }
