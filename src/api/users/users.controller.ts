@@ -12,7 +12,7 @@ export class UserController {
 
   @Post('request-phone')
   @ApiOperation({ summary: 'Submit phone number for OTP verification' })
-  requestPhoneNumber(@Body() dto: RequestPhoneDto) {
+  async requestPhoneNumber(@Body() dto: RequestPhoneDto): Promise<string> {
     return this.userService.requestPhoneNumber(dto);
   }
 

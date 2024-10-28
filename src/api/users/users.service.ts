@@ -17,7 +17,14 @@ export class UserService {
   ) {}
 
   // Store the phone number temporarily
-  requestPhoneNumber(dto: RequestPhoneDto): string {
+  async requestPhoneNumber(dto: RequestPhoneDto): Promise<string> {
+    //Check if the phone number already exists before otp verification
+    const existingUserWithPhone = await this.userRepository. findOne({
+      where: {phoneNumber: dto.phoneNumber},
+    });
+    if (existingUserWithPhone){
+      throw new ConflictException('A user with this phone number already exists')
+    }
     this.tempPhoneNumber = dto.phoneNumber;
     return `Phone number ${this.tempPhoneNumber} received. Please validate with OTP.`;
   }
@@ -36,15 +43,16 @@ export class UserService {
       throw new BadRequestException('Phone number is missing. Please request and validate the phone number first.');
     }
 
-    //Check if user exists with phone number
-    const existingUser = await this.userRepository.findOne({ where: {phoneNumber: this.tempPhoneNumber},
+    //Check if user exists with Email
+    const existingUserWithEmail= await this.userRepository.findOne({ where: { email: dto.email},
     });
-    if (existingUser){
-      throw new ConflictException('Phone number already exists');
+    if (existingUserWithEmail){
+      throw new ConflictException('This email already exists');
     }
 
-    const { firstName, lastName, email, password } = dto;
-    const phoneNumber = this.tempPhoneNumber; // Use the stored phone number
+
+    const { firstName, lastName, email, password} = dto;
+    const phoneNumber = this.tempPhoneNumber; // Uses the stored phone number
 
 
     const user = this.userRepository.create({
@@ -52,7 +60,8 @@ export class UserService {
       lastName,
       email,
       phoneNumber,
-      password
+      password,
+      isverified: true, // Sets user is verified to true
     });
 
     this.tempPhoneNumber = null; // Clear the temporary phone number after registration

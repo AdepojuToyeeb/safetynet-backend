@@ -20,8 +20,6 @@ export class Users extends BaseModel {
     @Column()
     password: string;
 
-
-
     @Column({default:false, name: 'is_verified'})
     isverified: boolean;
 
