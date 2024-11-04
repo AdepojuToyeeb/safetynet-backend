@@ -1,13 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsPhoneNumber, IsString, Length } from "class-validator";
- 
- export class VerifyOtpDto{
-    @ApiProperty()
-    @IsPhoneNumber()
-    phoneNumber:string;
+import { CHANNEL } from "src/constants";
 
-    @ApiProperty()
-    @IsString()
-    otp: string;
+export class VerifyOtpDto {
+   @ApiProperty()
+   recipient: string;
 
- }
+   @ApiProperty()
+   @IsString()
+   otp: string;
+
+   @ApiProperty({ enum: CHANNEL })
+   channel: CHANNEL
+
+}

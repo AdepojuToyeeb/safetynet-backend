@@ -8,12 +8,12 @@ import { CreateUserDTO } from 'src/dto/requests/create-user.dto';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Post('request-phone')
-  @ApiOperation({ summary: 'Submit phone number for OTP verification' })
-  async requestPhoneNumber(@Body() dto: RequestPhoneDto) {
-    return this.userService.requestPhoneNumber(dto);
+  @Post('verify-user-contact')
+  @ApiOperation({ summary: 'Verify user contact' })
+  async verifyUserContact(@Body() dto: RequestPhoneDto) {
+    return this.userService.verifyUserContact(dto);
   }
 
   @Post('validate-otp')

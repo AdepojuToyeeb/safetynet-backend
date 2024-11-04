@@ -4,21 +4,16 @@ import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class Users extends BaseModel {
+    @Column({nullable:true, name:'full_name'})
+    fullName:string
 
-
-    @Column({nullable:false, name:'first_name'})
-    firstName:string
-
-    @Column({nullable:false, name:'last_name'})
-    lastName:string
-
-    @Column({unique:true})
+    @Column({nullable:true})
     email: string;
 
     @Column({nullable: false,length: 60, name:'password'})
     password: string;
     
-    @Column({unique:true, name:'phone_number'})
+    @Column({nullable:true, name:'phone_number'})
     phoneNumber:string
 
 
