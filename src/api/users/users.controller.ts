@@ -1,9 +1,9 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { UserService } from './users.service';
-import { RequestPhoneDto } from 'src/dto/request-phone.dto';
-import { ValidateOtpDto } from 'src/dto/validate-otp-dto';
-import { CreateUserDTO } from 'src/dto/create-user.dto';
+import { RequestPhoneDto } from 'src/dto/requests/request-phone.dto';
+import { VerifyOtpDto } from 'src/dto/requests/verify-otp-dto';
+import { CreateUserDTO } from 'src/dto/requests/create-user.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -12,14 +12,14 @@ export class UserController {
 
   @Post('request-phone')
   @ApiOperation({ summary: 'Submit phone number for OTP verification' })
-  async requestPhoneNumber(@Body() dto: RequestPhoneDto): Promise<string> {
+  async requestPhoneNumber(@Body() dto: RequestPhoneDto) {
     return this.userService.requestPhoneNumber(dto);
   }
 
   @Post('validate-otp')
   @ApiOperation({ summary: 'Validate OTP' })
-  async validateOtp(@Body() dto: ValidateOtpDto) {
-    return this.userService.validateOtp(dto);
+  async validateOtp(@Body() dto: VerifyOtpDto) {
+    return this.userService.verifyOtp(dto);
   }
 
   @Post('register')
@@ -28,6 +28,7 @@ export class UserController {
     return this.userService.registerUser(dto);
   }
 }
+
 
 
 

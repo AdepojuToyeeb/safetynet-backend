@@ -2,45 +2,68 @@ import { Injectable, BadRequestException, ConflictException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Users } from 'src/models/users.entity';
-import { RequestPhoneDto } from 'src/dto/request-phone.dto';
-import { ValidateOtpDto } from 'src/dto/validate-otp-dto';
-import { CreateUserDTO } from 'src/dto/create-user.dto';
+import { RequestPhoneDto } from 'src/dto/requests/request-phone.dto';
+import { VerifyOtpDto } from 'src/dto/requests/verify-otp-dto';
+import { CreateUserDTO } from 'src/dto/requests/create-user.dto';
+import { OtpAuth } from 'src/models/otpauth.entity';
+
 
 @Injectable()
 export class UserService {
-  private readonly hardcodedOtp = '123456'; // OTP for validation
-  private tempPhoneNumber: string | null = null; // Temporary storage for the phone number
-
   constructor(
+    @InjectRepository(OtpAuth)
+    private otpRepository: Repository<OtpAuth>,
     @InjectRepository(Users)
     private userRepository: Repository<Users>,
   ) {}
 
-  // Store the phone number temporarily
-  async requestPhoneNumber(dto: RequestPhoneDto): Promise<string> {
-    //Check if the phone number already exists before otp verification
-    const existingUserWithPhone = await this.userRepository. findOne({
-      where: {phoneNumber: dto.phoneNumber},
-    });
-    if (existingUserWithPhone){
-      throw new ConflictException('A user with this phone number already exists')
+  // Request for User phone number
+  async requestPhoneNumber(RequestPhoneDto: RequestPhoneDto): Promise<{message:string}>{
+    // Check if the phone number exists in the user db already
+    const existingUserWithPhoneNumber = await this.userRepository.findOne({
+      where:{phoneNumber: RequestPhoneDto.phoneNumber},
+    })
+    if(existingUserWithPhoneNumber){
+      throw new BadRequestException('Phone number already exists');
     }
-    this.tempPhoneNumber = dto.phoneNumber;
-    return `Phone number ${this.tempPhoneNumber} received. Please validate with OTP.`;
+
+    // We use our hardcoded otp instead of an otp generation
+    const hardcodedOtp = '123456';
+
+    const verification = this.otpRepository.create({
+      phoneNumber: RequestPhoneDto.phoneNumber,
+      otp: hardcodedOtp,
+
+    })
+    await this.otpRepository.save(verification);
+    return{message: 'Otp sent successfully'};
+    
   }
   
-  // Validate the OTP using the stored phone number
-  async validateOtp(dto: ValidateOtpDto): Promise<{message: string}> {
-    if (dto.otp !== this.hardcodedOtp || !this.tempPhoneNumber) {
-      throw new BadRequestException('Invalid OTP or phone number not provided');
+  // Verify the otp with the phone number
+  async verifyOtp(VerifyOtpDto:VerifyOtpDto): Promise<{message:string}>{
+    const verification = await this.otpRepository.findOne({
+      where: {phoneNumber: VerifyOtpDto.phoneNumber,otp: VerifyOtpDto.otp},
+    });
+
+    if (!verification){
+      throw new BadRequestException('Invalid Otp')
     }
-    return {message:'OTP verification successful'};
+    verification.isverified=true;
+    await this.otpRepository.save(verification);
+    return{message: 'OTP verified successfully'};
   }
 
-  // Automatically use the stored phone number during registration
-  async registerUser(dto: CreateUserDTO): Promise<Users> {
-    if (!this.tempPhoneNumber) {
-      throw new BadRequestException('Phone number is missing. Please request and validate the phone number first.');
+  
+
+  // Create a User
+  async registerUser(dto: CreateUserDTO): Promise<{message:string}> {
+    const verification = await this.otpRepository.findOne({
+      where: {phoneNumber: dto.phoneNumber, isverified:true},
+    });
+
+    if (!verification){
+      throw new BadRequestException ('Phone number not verified');
     }
 
     //Check if user exists with Email
@@ -51,20 +74,13 @@ export class UserService {
     }
 
 
-    const { firstName, lastName, email, password} = dto;
-    const phoneNumber = this.tempPhoneNumber; // Uses the stored phone number
-
-
     const user = this.userRepository.create({
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      password,
-      isverified: true, // Sets user is verified to true
+      ...dto, 
     });
+    await this.userRepository.save(user);
 
-    this.tempPhoneNumber = null; // Clear the temporary phone number after registration
-    return this.userRepository.save(user);
+    // Clean up verification record
+    await this.otpRepository.delete({phoneNumber: dto.phoneNumber});
+    return {message: 'User created successfully'};
   }
 }

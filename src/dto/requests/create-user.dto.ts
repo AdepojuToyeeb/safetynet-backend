@@ -17,6 +17,9 @@ export class CreateUserDTO {
     @IsString()
     @Length(6, 20)
     password: string;
+    @ApiProperty()
+    @IsPhoneNumber()
+    phoneNumber: string;
 
     
 

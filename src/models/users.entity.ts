@@ -5,8 +5,6 @@ import * as bcrypt from 'bcrypt';
 @Entity()
 export class Users extends BaseModel {
 
-    @Column({unique:true, name:'phone_number'})
-    phoneNumber:string
 
     @Column({nullable:false, name:'first_name'})
     firstName:string
@@ -17,11 +15,11 @@ export class Users extends BaseModel {
     @Column({unique:true})
     email: string;
 
-    @Column()
+    @Column({nullable: false,length: 60, name:'password'})
     password: string;
-
-    @Column({default:false, name: 'is_verified'})
-    isverified: boolean;
+    
+    @Column({unique:true, name:'phone_number'})
+    phoneNumber:string
 
 
     @BeforeInsert()

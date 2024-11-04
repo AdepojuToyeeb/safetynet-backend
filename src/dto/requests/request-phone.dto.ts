@@ -4,7 +4,7 @@ import { IsPhoneNumber, IsString } from 'class-validator';
 
 export class RequestPhoneDto{
   @ApiProperty()
-  @IsString()
+  @IsPhoneNumber()
   phoneNumber: string;
 }
 
