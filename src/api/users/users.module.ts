@@ -8,6 +8,5 @@ import { OtpAuth } from 'src/models/otpauth.entity';
   imports: [TypeOrmModule.forFeature([Users, OtpAuth])],
   controllers: [UserController],
   providers: [UserService],
-  exports: [TypeOrmModule],
 })
 export class UsersModule {}
