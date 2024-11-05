@@ -4,8 +4,9 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Users } from '../models/users.entity';
+import { Users } from 'src/models/users.entity';
 import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
