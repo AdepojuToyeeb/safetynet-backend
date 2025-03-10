@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, OneToMany } from 'typeorm';
 import { BaseModel } from './BaseModel';
 import * as bcrypt from 'bcrypt';
+import { EmergencyContacts } from './emergencycontact.entity';
+
 
 @Entity()
 export class Users extends BaseModel {
@@ -15,6 +17,9 @@ export class Users extends BaseModel {
     
     @Column({nullable:true, name:'phone_number'})
     phoneNumber:string
+
+   @OneToMany(() => EmergencyContacts, (emergencyContact) => emergencyContact.user)
+   emergencyContacts: EmergencyContacts[];
 
 
     @BeforeInsert()
